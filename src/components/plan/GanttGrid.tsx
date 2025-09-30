@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/context-menu";
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
-import { calculateWorkingDays } from '@/lib/ganttUtils';
 import { useDraggable } from '@dnd-kit/core';
 interface GanttGridProps {
   tasks: PlanTask[];
@@ -19,6 +18,7 @@ interface GanttGridProps {
   onAddTask: (parentId?: string) => void;
   onDeleteTask: (taskId: string) => void;
   gridRef: React.RefObject<HTMLDivElement>;
+  widthPx?: number;
 }
 const GridRow = ({ task, level, selectedTask, onSelectTask, onAddTask, onDeleteTask }: {
   task: PlanTask;
@@ -81,7 +81,7 @@ const GridRow = ({ task, level, selectedTask, onSelectTask, onAddTask, onDeleteT
           </div>
           <div className="w-20 flex-shrink-0 border-r p-1 text-center">{format(parseISO(task.startDate), 'dd-MMM-yy')}</div>
           <div className="w-20 flex-shrink-0 border-r p-1 text-center">{format(parseISO(task.endDate), 'dd-MMM-yy')}</div>
-          <div className="w-16 flex-shrink-0 border-r p-1 text-right">{calculateWorkingDays(task.startDate, task.endDate)}</div>
+          {/* Days column removed */}
           <div className="w-16 flex-shrink-0 border-r p-1 text-right">{task.estHours}</div>
           <div className="w-16 flex-shrink-0 border-r p-1 text-right">{task.usedHours}</div>
           <div className="w-16 flex-shrink-0 p-1 text-right font-medium">{task.estHours - task.usedHours}</div>
@@ -112,10 +112,19 @@ const GridRow = ({ task, level, selectedTask, onSelectTask, onAddTask, onDeleteT
     </ContextMenu>
   );
 };
-export function GanttGrid({ tasks, selectedTask, onSelectTask, onAddTask, onDeleteTask, gridRef }: GanttGridProps) {
+export function GanttGrid({ tasks, selectedTask, onSelectTask, onAddTask, onDeleteTask, gridRef, widthPx }: GanttGridProps) {
+  // Months row removed → only align with remaining two rows (weeks + days).
+  const SPACER_BEFORE_HEADER_PX = 40 + 32; // weeks h-10 + days h-8
   return (
-    <div ref={gridRef} className="w-[35rem] flex-shrink-0 border-r bg-card overflow-x-hidden">
-      <div className="sticky top-0 z-10 flex bg-muted font-semibold text-xs">
+    <div
+      ref={gridRef}
+      className="flex-shrink-0 border-r bg-card overflow-x-hidden"
+      style={{ width: widthPx ? `${widthPx}px` : undefined }}
+    >
+      {/* Spacer rows to align with timeline header (months + weeks + days) */}
+      <div style={{ height: SPACER_BEFORE_HEADER_PX }} />
+      {/* Grid header now sits as the 4th row, aligning with weekday row */}
+      <div className="flex bg-muted font-semibold text-xs">
         <div className="w-10 flex-shrink-0 border-b border-r p-1 text-center">WBS</div>
         <div className="w-20 flex-shrink-0 border-b border-r p-1">Project Case</div>
         <div className="w-32 flex-shrink-0 border-b border-r p-1">Task Name</div>
@@ -125,7 +134,7 @@ export function GanttGrid({ tasks, selectedTask, onSelectTask, onAddTask, onDele
         <div className="w-24 flex-shrink-0 border-b border-r p-1">Status</div>
         <div className="w-20 flex-shrink-0 border-b border-r p-1 text-center">Start</div>
         <div className="w-20 flex-shrink-0 border-b border-r p-1 text-center">End</div>
-        <div className="w-16 flex-shrink-0 border-b border-r p-1 text-right">Days</div>
+        {/* Days header removed */}
         <div className="w-16 flex-shrink-0 border-b border-r p-1 text-right">EST</div>
         <div className="w-16 flex-shrink-0 border-b border-r p-1 text-right">USED</div>
         <div className="w-16 flex-shrink-0 border-b p-1 text-right">REM</div>

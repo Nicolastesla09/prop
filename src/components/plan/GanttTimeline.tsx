@@ -1,7 +1,7 @@
 import React from 'react';
 import { PlanTask } from '@/types';
 import { generateDateHeaders } from '@/lib/ganttUtils';
-import { format, differenceInDays, parseISO, isToday, isWeekend, addDays } from 'date-fns';
+import { format, differenceInDays, parseISO, isToday, isWeekend, addDays, startOfWeek, getISOWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { DndContext, useDraggable, useDroppable, DragEndEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
@@ -113,30 +113,61 @@ export function GanttTimeline({ tasks, startDate, endDate, onTaskUpdate, timelin
   return (
     <div ref={timelineRef} className="flex-grow overflow-x-auto bg-background">
       <div ref={headerRef} className="sticky top-0 z-20 bg-muted">
+        {/* Weeks row */}
         <div className="flex">
-          {months.map((month) => (
-            <div
-              key={`${month.name}-${month.year}`}
-              className="border-b border-r text-center font-semibold text-sm"
-              style={{ width: month.dayCount * DAY_WIDTH }}
-            >
-              {month.name} {month.year}
-            </div>
-          ))}
+          {(() => {
+            const weeks: { key: number; count: number; start: Date; weekNo: number }[] = [];
+            days.forEach((day) => {
+              const start = startOfWeek(day, { weekStartsOn: 1 });
+              const key = start.getTime();
+              const last = weeks[weeks.length - 1];
+              if (!last || last.key !== key) {
+                weeks.push({ key, count: 1, start, weekNo: getISOWeek(day) });
+              } else {
+                last.count += 1;
+              }
+            });
+            return weeks.map((w) => (
+              <div
+                key={w.key}
+                className="border-b border-r text-center text-xs leading-tight h-10 flex flex-col items-center justify-center"
+                style={{ width: w.count * DAY_WIDTH }}
+              >
+                <div className="font-medium">Week {w.weekNo}</div>
+                <div className="text-[10px] opacity-70">{format(w.start, 'd MMM yyyy')}</div>
+              </div>
+            ));
+          })()}
         </div>
+        {/* Days row */}
         <div className="flex">
           {days.map(day => (
             <div
               key={day.toString()}
               className={cn(
-                "flex-shrink-0 border-b border-r text-center text-xs",
+                "flex-shrink-0 border-b border-r text-center text-xs h-8 flex items-center justify-center",
                 isWeekend(day) && "bg-muted-foreground/10"
               )}
               style={{ width: DAY_WIDTH }}
             >
-              <div className={cn("py-1", isToday(day) && "bg-blue-500 text-white rounded-full w-6 h-6 mx-auto flex items-center justify-center")}>
+              <div className={cn("", isToday(day) && "bg-blue-500 text-white rounded-full w-6 h-6 mx-auto flex items-center justify-center")}>
                 {format(day, 'd')}
               </div>
+            </div>
+          ))}
+        </div>
+        {/* Weekday letters row (bottom, aligned with grid titles) */}
+        <div className="flex">
+          {days.map(day => (
+            <div
+              key={`dow-${day.toString()}`}
+              className={cn(
+                "flex-shrink-0 border-b border-r text-center text-xs h-8 flex items-center justify-center",
+                isWeekend(day) && "bg-muted-foreground/10"
+              )}
+              style={{ width: DAY_WIDTH }}
+            >
+              <div className="uppercase">{format(day, 'EEEEE')}</div>
             </div>
           ))}
         </div>

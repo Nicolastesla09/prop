@@ -49,6 +49,30 @@ export function PlanPage() {
   const gridRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
+  const [gridWidth, setGridWidth] = useState<number>(560); // ~35rem default
+  const isDraggingRef = useRef<boolean>(false);
+  const startXRef = useRef<number>(0);
+  const startWidthRef = useRef<number>(gridWidth);
+  const onResizerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    isDraggingRef.current = true;
+    startXRef.current = e.clientX;
+    startWidthRef.current = gridWidth;
+    const handleMouseMove = (ev: MouseEvent) => {
+      if (!isDraggingRef.current) return;
+      const delta = ev.clientX - startXRef.current;
+      const next = Math.min(Math.max(startWidthRef.current + delta, 360), 1000);
+      setGridWidth(next);
+    };
+    const handleMouseUp = () => {
+      isDraggingRef.current = false;
+      document.body.style.cursor = '';
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    document.body.style.cursor = 'col-resize';
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
   useEffect(() => {
     const gridEl = gridRef.current;
     const timelineEl = timelineRef.current;
@@ -186,7 +210,14 @@ export function PlanPage() {
         </TabsList>
         <TabsContent value="task" className="flex-grow flex flex-col space-y-4 mt-4">
           <div className="flex-grow flex overflow-hidden rounded-lg border h-full">
-            <GanttGrid tasks={tasks} selectedTask={selectedTask} onSelectTask={setSelectedTask} onAddTask={handleAddTask} onDeleteTask={handleDeleteTask} gridRef={gridRef} />
+            <GanttGrid tasks={tasks} selectedTask={selectedTask} onSelectTask={setSelectedTask} onAddTask={handleAddTask} onDeleteTask={handleDeleteTask} gridRef={gridRef} widthPx={gridWidth} />
+            <div
+              id="gantt-resizer-handle"
+              className="flex-shrink-0 h-full w-2 cursor-col-resize bg-border hover:bg-primary/40 active:bg-primary/60"
+              style={{ userSelect: 'none' }}
+              title="Drag to resize"
+              onMouseDown={onResizerMouseDown}
+            />
             <div className="flex-1 min-w-0">
               <GanttTimeline tasks={tasks} startDate={displayStartDate} endDate={displayEndDate} onTaskUpdate={handleTaskTimelineUpdate} timelineRef={timelineRef} headerRef={headerRef} />
             </div>

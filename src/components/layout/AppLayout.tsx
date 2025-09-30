@@ -9,7 +9,7 @@ export function AppLayout() {
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header />
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-7xl p-6 md:p-8">
+          <div className="mx-auto w-full px-4 sm:px-6 md:px-8 py-4 md:py-6">
             <Outlet />
           </div>
         </main>
