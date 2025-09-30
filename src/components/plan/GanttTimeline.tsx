@@ -3,7 +3,7 @@ import { PlanTask } from '@/types';
 import { generateDateHeaders } from '@/lib/ganttUtils';
 import { format, differenceInDays, parseISO, isToday, isWeekend, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { DndContext, useDraggable, useDroppable, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, useDraggable, useDroppable, DragEndEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 const DAY_WIDTH = 32; // width of a day column in pixels
 interface GanttTimelineProps {
@@ -49,7 +49,7 @@ function TaskBar({ task, startDate, top }: { task: PlanTask; startDate: Date; to
     <div
       ref={setNodeRef}
       style={{ ...style, left, width, top, position: 'absolute' }}
-      className="h-6 bg-blue-500 rounded-md flex items-center px-2 text-white text-xs z-10 group"
+      className="h-6 bg-blue-500 border border-blue-600 rounded-md flex items-center px-2 text-white text-xs z-10 group shadow-sm"
       title={`${task.name} (${task.usedHours}/${task.estHours}h)`}
     >
       <div ref={setLeftHandleRef} {...leftListeners} className="absolute left-0 top-0 bottom-0 w-2 cursor-ew-resize" />
@@ -65,6 +65,8 @@ export function GanttTimeline({ tasks, startDate, endDate, onTaskUpdate, timelin
   const { days, months } = generateDateHeaders(startDate, endDate);
   const flatTasks = flattenTasks(tasks);
   const { setNodeRef } = useDroppable({ id: 'gantt-droppable-area' });
+  const [draggedTask, setDraggedTask] = React.useState<PlanTask | null>(null);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -72,6 +74,18 @@ export function GanttTimeline({ tasks, startDate, endDate, onTaskUpdate, timelin
       },
     })
   );
+
+  // Early return if no data
+  if (!tasks || tasks.length === 0) {
+    return (
+      <div className="flex-1 bg-muted/20 flex items-center justify-center text-muted-foreground border-l">
+        <div className="text-center">
+          <p>No tasks to display</p>
+          <p className="text-sm mt-2">Tasks: {tasks?.length || 0}</p>
+        </div>
+      </div>
+    );
+  }
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, delta } = event;
     const task = active.data.current?.task as PlanTask;
@@ -97,7 +111,7 @@ export function GanttTimeline({ tasks, startDate, endDate, onTaskUpdate, timelin
     onTaskUpdate(task.id, newStartDate, newEndDate);
   };
   return (
-    <div ref={timelineRef} className="flex-grow overflow-x-auto">
+    <div ref={timelineRef} className="flex-grow overflow-x-auto bg-background">
       <div ref={headerRef} className="sticky top-0 z-20 bg-muted">
         <div className="flex">
           {months.map((month) => (
@@ -130,10 +144,11 @@ export function GanttTimeline({ tasks, startDate, endDate, onTaskUpdate, timelin
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
         <div
           ref={setNodeRef}
-          className="relative"
+          className="relative bg-background"
           style={{
-            height: `${flatTasks.length * 41}px`,
+            height: `${Math.max(flatTasks.length * 41, 200)}px`,
             width: `${days.length * DAY_WIDTH}px`,
+            minWidth: '400px',
             backgroundImage: 'linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px)',
             backgroundSize: `${DAY_WIDTH}px 41px`,
           }}

@@ -169,7 +169,7 @@ export function PlanPage() {
     );
   }
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] space-y-8">
+    <div className="flex flex-col h-[calc(100vh-4rem)] space-y-4">
       <div className="flex items-center justify-between flex-shrink-0">
         <h1 className="text-3xl font-bold tracking-tight">Project Plan</h1>
         <ToggleGroup type="single" value={viewFilter} onValueChange={(value) => value && setViewFilter(value as any)} size="sm">
@@ -185,10 +185,17 @@ export function PlanPage() {
           <TabsTrigger value="view" disabled>View</TabsTrigger>
         </TabsList>
         <TabsContent value="task" className="flex-grow flex flex-col space-y-4 mt-4">
-          <div className="flex-grow flex overflow-hidden rounded-lg border">
+          <div className="flex-grow flex overflow-hidden rounded-lg border h-full">
             <GanttGrid tasks={tasks} selectedTask={selectedTask} onSelectTask={setSelectedTask} onAddTask={handleAddTask} onDeleteTask={handleDeleteTask} gridRef={gridRef} />
-            <GanttTimeline tasks={tasks} startDate={displayStartDate} endDate={displayEndDate} onTaskUpdate={handleTaskTimelineUpdate} timelineRef={timelineRef} headerRef={headerRef} />
+            <div className="flex-1 min-w-0">
+              <GanttTimeline tasks={tasks} startDate={displayStartDate} endDate={displayEndDate} onTaskUpdate={handleTaskTimelineUpdate} timelineRef={timelineRef} headerRef={headerRef} />
+            </div>
           </div>
+          {process.env.NODE_ENV === 'development' && (
+            <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded">
+              Debug: Tasks: {tasks?.length || 0}, Start: {displayStartDate?.toISOString()}, End: {displayEndDate?.toISOString()}
+            </div>
+          )}
           <div className="flex-shrink-0">
             <TaskDetailsForm task={selectedTask} onSave={handleSaveTask} />
           </div>
