@@ -1,6 +1,6 @@
 # SAR Project Manager
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/PMNicolas0903/prop)
 
 SAR Project Manager is a sophisticated, desktop-style web application designed for streamlined project and task management. It features a clean, intuitive interface with a persistent sidebar for navigation and a global search header for quick access to information. The application provides multiple views for data, including a high-level Dashboard with key metrics and charts, detailed Project and Task management pages with toggleable Table and Kanban views, and an advanced Project Plan view with an interactive Gantt chart. Built with React, TypeScript, and Tailwind CSS, it leverages Zustand for efficient state management and provides a visually stunning, highly performant user experience for tracking project progress from inception to completion.
 
@@ -86,7 +86,7 @@ This application is designed to be deployed on the Cloudflare network.
 
 ### Deploy with one click
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/PMNicolas0903/prop)
 
 ### Manual Deployment via CLI
 
